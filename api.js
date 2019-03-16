@@ -41,6 +41,21 @@ function createUserDesign(authorizedFetch, session) {
   };
 }
 
+function updateUserDesign(authorizedFetch, session) {
+  return async (design) => {
+    const userId = sessionUtils.userId(session);
+    const designId = designUtils.designId(design);
+    const url = `${apiBaseUrl}/users/${userId}/designs/${designId}?mediaType=json`;
+
+    const response = await authorizedFetch(url, {
+      method: 'PUT',
+      body: JSON.stringify(design),
+    });
+
+    return response.json();
+  };
+}
+
 function deleteUserDesign(authorizedFetch, session) {
   return async (design) => {
     const userId = sessionUtils.userId(session);
@@ -57,6 +72,7 @@ function authorize(session, apiKey, apiSecret) {
 
   return {
     createUserDesign: createUserDesign(authorizedFetch, session),
+    updateUserDesign: updateUserDesign(authorizedFetch, session),
     deleteUserDesign: deleteUserDesign(authorizedFetch, session),
   };
 }
