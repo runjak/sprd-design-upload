@@ -10,6 +10,7 @@ Current progress:
 
 * There is code that can login and logout given username and password as environment variables.
   * You can put a `.env` file to read these from and use `yarn start`/`npm start` to execute with `dotenv`.
+  * apiKey and apiSecret are now also given via environment variables.
 * Creation of user designs requires an ApiKey and Secret.
   * These should be given as environment variables, too.
   * The current SpreadShirt Documentation doesn't give enough hints on how to obtain these credentials.
