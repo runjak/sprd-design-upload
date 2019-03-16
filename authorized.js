@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 const sessionUtils = require('./session-utils');
 
 const fetch = require('node-fetch');
