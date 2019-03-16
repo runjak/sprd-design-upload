@@ -22,7 +22,7 @@ const design = designUtils.newDesign(
   const authorized = api.authorize(session, apiKey, apiSecret);
 
   try {
-    const createResponse = await authorized.createUserDesign(design);
+    const createResponse = await authorized.createUserDesign();
 
     console.log('Created design', createResponse);
   } catch (error) {

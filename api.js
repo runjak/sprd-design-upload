@@ -1,6 +1,7 @@
 const fetch = require('node-fetch');
 
 const sessionUtils = require('./session-utils');
+const designUtils = require('./design-utils');
 const authorized = require('./authorized');
 
 const apiBaseUrl = 'https://api.spreadshirt.net/api/v1';
@@ -27,13 +28,13 @@ async function deleteSecuritySession(session) {
 }
 
 function createUserDesign(authorizedFetch, session) {
-  return async (design) => {
+  return async () => {
     const userId = sessionUtils.userId(session);
     const url = `${apiBaseUrl}/users/${userId}/designs?mediaType=json`;
 
     const response = await authorizedFetch(url, {
       method: 'POST',
-      body: JSON.stringify(design),
+      body: JSON.stringify({}),
     });
 
     return response.json();
