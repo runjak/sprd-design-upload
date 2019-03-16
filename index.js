@@ -5,6 +5,8 @@ const designUtils = require('./design-utils');
 const {
   USERNAME: username,
   PASSWORD: password,
+  API_KEY: apiKey,
+  API_SECRET: apiSecret,
 } = process.env;
 
 const design = designUtils.newDesign(
@@ -17,9 +19,10 @@ const design = designUtils.newDesign(
 (async () => {
   const session = await api.createSecuritySession(username, password);
   console.log('Logged in as', sessionUtils.userId(session));
+  const authorized = api.authorize(session, apiKey, apiSecret);
 
   try {
-    const createResponse = await api.createUserDesign(design, session);
+    const createResponse = await authorized.createUserDesign(design);
 
     console.log('Created design', createResponse);
   } catch (error) {

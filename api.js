@@ -1,6 +1,7 @@
 const fetch = require('node-fetch');
 
 const sessionUtils = require('./session-utils');
+const authorized = require('./authorized');
 
 const apiBaseUrl = 'https://api.spreadshirt.net/api/v1';
 
@@ -25,33 +26,42 @@ async function deleteSecuritySession(session) {
   await fetch(url, {method: 'DELETE'});
 }
 
-async function createUserDesign(design, session) {
-  const userId = sessionUtils.userId(session);
-  const sessionId = sessionUtils.sessionId(session);
-  const url = `${apiBaseUrl}/users/${userId}/designs?mediaType=json&sessionId=${sessionId}`;
+function createUserDesign(authorizedFetch, session) {
+  return async (design) => {
+    const userId = sessionUtils.userId(session);
+    const url = `${apiBaseUrl}/users/${userId}/designs?mediaType=json`;
 
-  // FIXME needs apiKey
-  const response = await fetch(url, {
-    method: 'POST',
-    body: JSON.stringify(design),
-  });
+    const response = await authorizedFetch(url, {
+      method: 'POST',
+      body: JSON.stringify(design),
+    });
 
-  return response.json();
+    return response.json();
+  };
 }
 
-async function deleteUserDesign(design, session) {
-  const userId = sessionUtils.userId(session);
-  const designId = designUtils.designId(design);
+function deleteUserDesign(authorizedFetch, session) {
+  return async (design) => {
+    const userId = sessionUtils.userId(session);
+    const designId = designUtils.designId(design);
 
-  // FIXME needs apiKey
-  const url = `${apiBaseUrl}/users/${userId}/designs/${designId}`;
+    const url = `${apiBaseUrl}/users/${userId}/designs/${designId}`;
 
-  await fetch(url, {method: 'DELETE'});
+    await authorizedFetch(url, {method: 'DELETE'});
+  };
+}
+
+function authorize(session, apiKey, apiSecret) {
+  const authorizedFetch = authorized.createAuthorizedFetch(session, apiKey, apiSecret);
+
+  return {
+    createUserDesign: createUserDesign(authorizedFetch, session),
+    deleteUserDesign: deleteUserDesign(authorizedFetch, session),
+  };
 }
 
 module.exports = {
   createSecuritySession,
   deleteSecuritySession,
-  createUserDesign,
-  deleteUserDesign,
+  authorize,
 };
