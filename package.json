@@ -1,0 +1,10 @@
+{
+  "name": "spreadshirt-post-design",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Jakob Runge <sicarius@g4t3.de>",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.3.0"
+  }
+}
