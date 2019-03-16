@@ -1,5 +1,5 @@
 const api = require('./api');
-const sessionUtils = require('./session');
+const sessionUtils = require('./session-utils');
 
 const {
   USERNAME: username,

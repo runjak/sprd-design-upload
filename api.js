@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 
-const sessionUtils = require('./session');
+const sessionUtils = require('./session-utils');
 
 const apiBaseUrl = 'https://api.spreadshirt.net/api/v1';
 
