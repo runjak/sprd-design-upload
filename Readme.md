@@ -15,6 +15,7 @@ Current progress:
   * The current SpreadShirt Documentation doesn't give enough hints on how to obtain these credentials.
   * Once the credentials are known we can presumably build a simple wrapper for `node-fetch` to add signatures and get design uploads working
   * Once design uploads work we can redirect users to a Sketchomat with a desired designId.
+* To open a design in the Sketchomat you can apparently use a GET parameter like `designId=10441723`.
 
 Useful URLs
 ---
