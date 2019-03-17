@@ -5,6 +5,7 @@ const designUtils = require('./design-utils');
 const authorized = require('./authorized');
 
 const apiBaseUrl = 'https://api.spreadshirt.net/api/v1';
+const imageBaseUrl = 'https://image.spreadshirtmedia.net/image-server/v1';
 
 async function createSecuritySession(username, password) {
   const url = `${apiBaseUrl}/sessions?mediaType=json`;
@@ -67,6 +68,30 @@ function deleteUserDesign(authorizedFetch, session) {
   };
 }
 
+function uploadDesignImage(authorizedFetch) {
+  return async (design, imageUrl) => {
+    const designId = designUtils.designId(design);
+    const url = `${imageBaseUrl}/designs/${designId}`;
+
+    const response = await authorizedFetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'text/xml',
+      },
+      body: `
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <reference xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns="http://api.spreadshirt.net"
+          xlink:href="${imageUrl}" />
+      `,
+    });
+
+    console.log('uploadDesignImage with', response.text());
+
+    return response;
+  };
+}
+
 function authorize(session, apiKey, apiSecret) {
   const authorizedFetch = authorized.createAuthorizedFetch(session, apiKey, apiSecret);
 
@@ -74,6 +99,7 @@ function authorize(session, apiKey, apiSecret) {
     createUserDesign: createUserDesign(authorizedFetch, session),
     updateUserDesign: updateUserDesign(authorizedFetch, session),
     deleteUserDesign: deleteUserDesign(authorizedFetch, session),
+    uploadDesignImage: uploadDesignImage(authorizedFetch),
   };
 }
 

@@ -9,6 +9,14 @@ const {
   API_SECRET: apiSecret,
 } = process.env;
 
+const exampleDesign = {
+  name: '@sicarius',
+  description: 'Avatar of @sicarius',
+  // sourceUrl: 'https://avatars0.githubusercontent.com/u/5417642?s=460&v=4',
+  sourceUrl: 'https://image.spreadshirtmedia.net/image-server/v1/configurations/16940335.jpg',
+  price: 1,
+};
+
 (async () => {
   const session = await api.createSecuritySession(username, password);
   console.log('Logged in as', sessionUtils.userId(session));
@@ -18,14 +26,11 @@ const {
     const createResponse = await authorized.createUserDesign();
     console.log('Created design', createResponse);
 
-    const updateResponse = await authorized.updateUserDesign({
-      id: createResponse.id,
-      name: '@sicarius',
-      description: 'Avatar of @sicarius',
-      // sourceUrl: 'https://avatars0.githubusercontent.com/u/5417642?s=460&v=4',
-      price: 1,
-    });
-    console.log('Updated design', updateResponse);
+    const uploadDesignResponse = await authorized.uploadDesignImage(
+      createResponse,
+      exampleDesign.sourceUrl,
+    );
+    console.log('DRAGONS', uploadDesignResponse);
 
     await authorized.deleteUserDesign(createResponse);
     console.log('Deleted design.');
