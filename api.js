@@ -86,7 +86,8 @@ function uploadDesignImage(authorizedFetch) {
       `,
     });
 
-    console.log('uploadDesignImage with', response.text());
+    const text = await response.text();
+    console.log('uploadDesignImage with', text);
 
     return response;
   };
