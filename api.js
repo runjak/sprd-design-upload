@@ -29,6 +29,25 @@ async function deleteSecuritySession(session) {
   await fetch(url, {method: 'DELETE'});
 }
 
+function uploadShopDesign(authorizedFetch) {
+  return async (shopId, file) => {
+    const url = `${apiBaseUrl}/shops/${shopId}/design-uploads`;
+
+    const form = new FormData();
+    form.append('filedata', file);
+
+    const response = await authorizedFetch(url, {
+      method: 'POST',
+      body: form,
+      headers: form.getHeaders(),
+    });
+
+    console.log('DRAGONS', await response.text());
+
+    return response;
+  };
+}
+
 function uploadUserDesign(authorizedFetch, session) {
   return async (file) => {
     const userId = sessionUtils.userId(session);
@@ -77,6 +96,7 @@ function authorize(session, apiKey, apiSecret) {
   const authorizedFetch = authorized.createAuthorizedFetch(session, apiKey, apiSecret);
 
   return {
+    uploadShopDesign: uploadShopDesign(authorizedFetch),
     uploadUserDesign: uploadUserDesign(authorizedFetch, session),
     updateUserDesign: updateUserDesign(authorizedFetch, session),
     deleteUserDesign: deleteUserDesign(authorizedFetch, session),

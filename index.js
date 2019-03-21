@@ -8,6 +8,7 @@ const {
   PASSWORD: password,
   API_KEY: apiKey,
   API_SECRET: apiSecret,
+  SHOP_ID: shopId,
 } = process.env;
 
 const exampleDesign = {
@@ -24,7 +25,8 @@ const exampleDesign = {
   const authorized = api.authorize(session, apiKey, apiSecret);
 
   try {
-    const uploadResponse = await authorized.uploadUserDesign(
+    const uploadResponse = await authorized.uploadShopDesign(
+      shopId,
       createReadStream('./example.png')
     );
 
