@@ -80,7 +80,7 @@ function authorize(session, apiKey, apiSecret) {
   const authorizedFetch = authorized.createAuthorizedFetch(session, apiKey, apiSecret);
 
   return {
-    createUserDesign: uploadDesign(authorizedFetch, session),
+    uploadDesign: uploadDesign(authorizedFetch, session),
     updateUserDesign: updateUserDesign(authorizedFetch, session),
     deleteUserDesign: deleteUserDesign(authorizedFetch, session),
   };

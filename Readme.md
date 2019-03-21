@@ -56,3 +56,23 @@ The result was a complete design resource:
   }
 }
 ```
+
+Replicating this to upload a user design I got:
+
+```json
+{
+  "id": "d26db5e2-c34a-4b85-9757-d32ccb48aa30",
+  "lifecycleState": "FINAL",
+  "designId": "158814195",
+  "platform": "EU",
+  "name": "example",
+  "extension": "png",
+  "dateCreated": 1553203341608,
+  "dateModified": 1553203341608,
+  "size": {
+    "unit": "px",
+    "width": 995.0,
+    "height": 610.0
+  }
+}
+```
