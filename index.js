@@ -24,7 +24,7 @@ const exampleDesign = {
   const authorized = api.authorize(session, apiKey, apiSecret);
 
   try {
-    const uploadResponse = await authorized.uploadDesign(
+    const uploadResponse = await authorized.uploadUserDesign(
       createReadStream('./example.png')
     );
 

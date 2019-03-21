@@ -29,7 +29,7 @@ async function deleteSecuritySession(session) {
   await fetch(url, {method: 'DELETE'});
 }
 
-function uploadDesign(authorizedFetch, session) {
+function uploadUserDesign(authorizedFetch, session) {
   return async (file) => {
     const userId = sessionUtils.userId(session);
     const url = `${apiBaseUrl}/users/${userId}/design-uploads`;
@@ -43,10 +43,7 @@ function uploadDesign(authorizedFetch, session) {
       headers: form.getHeaders(),
     });
 
-    const text = await response.text();
-    console.log('uploadDesign with', text);
-
-    return response;
+    return response.json();
   };
 }
 
@@ -80,7 +77,7 @@ function authorize(session, apiKey, apiSecret) {
   const authorizedFetch = authorized.createAuthorizedFetch(session, apiKey, apiSecret);
 
   return {
-    uploadDesign: uploadDesign(authorizedFetch, session),
+    uploadUserDesign: uploadUserDesign(authorizedFetch, session),
     updateUserDesign: updateUserDesign(authorizedFetch, session),
     deleteUserDesign: deleteUserDesign(authorizedFetch, session),
   };
