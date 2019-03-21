@@ -1,6 +1,7 @@
+const { createReadStream } = require('fs');
+
 const api = require('./api');
 const sessionUtils = require('./session-utils');
-const designUtils = require('./design-utils');
 
 const {
   USERNAME: username,
@@ -23,17 +24,11 @@ const exampleDesign = {
   const authorized = api.authorize(session, apiKey, apiSecret);
 
   try {
-    const createResponse = await authorized.createUserDesign();
-    console.log('Created design', createResponse);
-
-    const uploadDesignResponse = await authorized.uploadDesignImage(
-      createResponse,
-      exampleDesign.sourceUrl,
+    const uploadResponse = await authorized.updateUserDesign(
+      createReadStream('./example.png')
     );
-    console.log('DRAGONS', uploadDesignResponse);
 
-    await authorized.deleteUserDesign(createResponse);
-    console.log('Deleted design.');
+    console.log('Uploaded design', uploadResponse);
   } catch (error) {
     console.log('Error creating design', error);
   } finally {

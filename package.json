@@ -6,6 +6,7 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "^7.0.0",
+    "form-data": "^2.3.3",
     "node-fetch": "^2.3.0"
   },
   "scripts": {

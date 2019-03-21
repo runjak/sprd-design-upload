@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const FormData = require('form-data');
 
 const sessionUtils = require('./session-utils');
 const designUtils = require('./design-utils');
@@ -28,17 +29,24 @@ async function deleteSecuritySession(session) {
   await fetch(url, {method: 'DELETE'});
 }
 
-function createUserDesign(authorizedFetch, session) {
-  return async () => {
+function uploadDesign(authorizedFetch, session) {
+  return async (file) => {
     const userId = sessionUtils.userId(session);
-    const url = `${apiBaseUrl}/users/${userId}/designs?mediaType=json`;
+    const url = `${apiBaseUrl}/users/${userId}/design-uploads`;
+
+    const form = new FormData();
+    form.append('filedata', file);
 
     const response = await authorizedFetch(url, {
       method: 'POST',
-      body: JSON.stringify({}),
+      body: form,
+      headers: form.getHeaders(),
     });
 
-    return response.json();
+    const text = await response.text();
+    console.log('uploadDesign with', text);
+
+    return response;
   };
 }
 
@@ -68,39 +76,13 @@ function deleteUserDesign(authorizedFetch, session) {
   };
 }
 
-function uploadDesignImage(authorizedFetch) {
-  return async (design, imageUrl) => {
-    const designId = designUtils.designId(design);
-    const url = `${imageBaseUrl}/designs/${designId}`;
-
-    const response = await authorizedFetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'text/xml',
-      },
-      body: `
-        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-        <reference xmlns:xlink="http://www.w3.org/1999/xlink"
-          xmlns="http://api.spreadshirt.net"
-          xlink:href="${imageUrl}" />
-      `,
-    });
-
-    const text = await response.text();
-    console.log('uploadDesignImage with', text);
-
-    return response;
-  };
-}
-
 function authorize(session, apiKey, apiSecret) {
   const authorizedFetch = authorized.createAuthorizedFetch(session, apiKey, apiSecret);
 
   return {
-    createUserDesign: createUserDesign(authorizedFetch, session),
+    createUserDesign: uploadDesign(authorizedFetch, session),
     updateUserDesign: updateUserDesign(authorizedFetch, session),
     deleteUserDesign: deleteUserDesign(authorizedFetch, session),
-    uploadDesignImage: uploadDesignImage(authorizedFetch),
   };
 }
 
