@@ -23,3 +23,36 @@ Useful URLs
 
 * The current SpreadShirt T-Shirt Designer: [Sketchomat](https://designer.spreadshirt.de/designers/sketchomat?locale=de_DE).
 * The SpreadShirt [API Documentation](https://developer.spreadshirt.net/display/API).
+
+Experiment
+---
+
+There is an internal util called `sprdcurl` that wraps apiKey handling and signing.
+We used it to upload an image to a shop resource:
+
+```bash
+$ sprdcurl -F filedata=@/home/…/Pictures/Screenshot-1553085752.png 'https://api.vm296.vnet/api/v1/shops/205909/design-uploads'
+curl -F filedata=@/home/…/Pictures/Screenshot-1553085752.png \
+  --header 'Authorization: SprdAuth apiKey="…", data="POST https://api.vm296.vnet/api/v1/shops/205909/design-uploads 1553085993736", sig="…"' \
+  --header 'User-Agent: sprd-curl-0.1.4-@…' https://api.vm296.vnet/api/v1/shops/205909/design-uploads
+```
+
+The result was a complete design resource:
+
+```json
+{
+  "id": "deaa2106-b042-4c3d-8ffb-81b6b00debc4",
+  "lifecycleState": "FINAL",
+  "designId": "168698525",
+  "platform": "EU",
+  "name": "Screenshot-1553085752",
+  "extension": "png",
+  "dateCreated": 1553085994334,
+  "dateModified": 1553085994334,
+  "size": {
+    "unit": "px",
+    "width":2560.0,
+    "height":1440.0
+  }
+}
+```
