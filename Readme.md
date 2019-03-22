@@ -76,3 +76,26 @@ Replicating this to upload a user design I got:
   }
 }
 ```
+
+Next steps
+---
+
+* Uploading of userDesigns is working
+* I need to test changing the price
+* userDesigns are only useful to our case iff we can open them via deeplink to the designer
+* shopDesigns might be an alternative route to enable opening via deeplink
+  * However I'm not sure we can create them
+* We may need to use the idea/flex api
+  * This could imply a need for reverse engineering
+
+Continuous testing
+---
+
+* The API will be subject to changes not desired by us
+* Therefore we shall continuously monitor whether something breaks
+* Monitoring should:
+  * Run some journeys from time to time and verify expected results
+  * Not create trash where avoidable
+  * Output curl equivalent to http requests so that
+    * Writing an additional client in a different language is easy
+    * Replicating a problem is easy
