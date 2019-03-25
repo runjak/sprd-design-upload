@@ -21,6 +21,13 @@ const {
     );
 
     console.log('Uploaded design', uploadResponse);
+
+    const wat = await authorized.updateUserDesign({
+      ...uploadResponse,
+      description: 'Here be dragons!',
+    });
+
+    console.log('there', wat);
   } catch (error) {
     console.log('Error creating design', error);
   } finally {

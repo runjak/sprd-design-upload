@@ -58,6 +58,8 @@ function updateUserDesign(authorizedFetch, session) {
       body: JSON.stringify(design),
     });
 
+    console.log('here');
+
     return response.json();
   };
 }
