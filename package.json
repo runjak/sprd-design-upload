@@ -6,8 +6,10 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "^7.0.0",
+    "fetch-cookie": "^0.7.2",
     "form-data": "^2.3.3",
-    "node-fetch": "^2.3.0"
+    "node-fetch": "^2.3.0",
+    "tough-cookie": "^3.0.1"
   },
   "scripts": {
     "start": "node -r dotenv/config ./index.js"

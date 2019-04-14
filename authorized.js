@@ -1,13 +1,8 @@
 const crypto = require('crypto');
+const fetchCookie = require('fetch-cookie');
 
-const sessionUtils = require('./session-utils');
-
-const fetch = require('node-fetch');
-
-function createAuthorizedFetch(session, apiKey, apiSecret) {
+function createAuthorizedFetch(fetch, sessionId, apiKey, apiSecret) {
   return (url, options) => {
-    const sessionId = sessionUtils.sessionId(session);
-
     const data = `${options.method} ${url} ${Date.now()}`;
     const hash = crypto.createHash('sha1');
     hash.update(`${data} ${apiSecret}`);
@@ -25,6 +20,20 @@ function createAuthorizedFetch(session, apiKey, apiSecret) {
   };
 }
 
+function withCookies(fetch) {
+  return fetchCookie(fetch);
+}
+
+function withDebug(fetch) {
+  return (url, options) => {
+    console.log('withDebug', url, JSON.stringify(options, undefined, 2));
+
+    return fetch(url, options);
+  };
+}
+
 module.exports = {
   createAuthorizedFetch,
+  withCookies,
+  withDebug,
 };
