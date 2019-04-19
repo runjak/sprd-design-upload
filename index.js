@@ -75,14 +75,15 @@ https://tus.io/protocols/resumable-upload.html
 async function createIdea(doFetch, filename) {
   const url = `https://partner.spreadshirt.de/api/v1/image-uploader/users/${userId}/ideas`;
 
+  // FIXME automate filename and upload-length
   const createResponse = await doFetch(
     url,
     {
       method: 'POST',
       headers: {
+        'tus-resumable': '1.0.0',
         'Upload-Metadata': `filename ${toBase64(filename)}`,
         'Upload-Length': '159524',
-        'tus-resumable': '1.0.0',
       },
     },
   );
@@ -90,8 +91,26 @@ async function createIdea(doFetch, filename) {
   return createResponse;
 }
 
+// FIXME use some kind of file object for post and patch
 async function patchIdea(doFetch, createResponse, file) {
+  const { location: url } = createResponse.headers.raw();
+  const body = createReadStream(file);
 
+  const patchResponse = await doFetch(
+    url,
+    {
+      method: 'PATCH',
+      headers: {
+        'content-type': 'application/offset+octet-stream',
+        'tus-resumable': '1.0.0',
+        // 'upload-offset': '159524',
+        'upload-offset': '0',
+      },
+      body,
+    },
+  );
+
+  return patchResponse;
 }
 
 (async () => {
@@ -105,4 +124,9 @@ async function patchIdea(doFetch, createResponse, file) {
 
   const creation = await createIdea(authorizedFetch, 'example.png');
   console.log('creation', creation, creation.headers.raw());
+
+  const patch = await patchIdea(authorizedFetch, creation, './example.png');
+  console.log('patch', patch);
+  console.log('patch.headers', patch.headers.raw());
+  console.log('patch.text', await patch.text());
 })();
