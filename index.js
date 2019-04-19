@@ -41,8 +41,9 @@ async function fetchState(doFetch, userId) {
 }
 
 async function fetchCurrencies(doFetch) {
-  const currenciesUrl = `${apiBaseUrl}/currencies?mediaType=json&fullData=true`;
-  const currenciesResponse = await doFetch(currenciesUrl, {method: 'GET'});
+  const url = `${apiBaseUrl}/currencies?mediaType=json&fullData=true`;
+
+  const currenciesResponse = await doFetch(url, {method: 'GET'});
 
   return currenciesResponse.json();
 }
@@ -56,9 +57,9 @@ function findIdForIsoCodeInCurrenciesData(currenciesData, wantedIsoCode = 'EUR')
 }
 
 async function fetchIdeas(doFetch) {
-  const ideasUrl = `${apiBaseUrl}/users/${userId}/ideas?fullData=true&mediaType=json&currencyId=1&locale=de_DE&offset=0&limit=47`;
+  const url = `${apiBaseUrl}/users/${userId}/ideas?fullData=true&mediaType=json&currencyId=1&locale=de_DE&offset=0&limit=47`;
 
-  const ideasResponse = await doFetch(ideasUrl, {method: 'GET'});
+  const ideasResponse = await doFetch(url, {method: 'GET'});
 
   return ideasResponse.json();
 }
