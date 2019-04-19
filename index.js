@@ -9,7 +9,6 @@ const {
   PASSWORD: password,
   API_KEY: apiKey,
   API_SECRET: apiSecret,
-  USER_ID: userId,
 } = process.env;
 
 async function createSession(doFetch) {
@@ -29,7 +28,7 @@ async function createSession(doFetch) {
   return createResponse.json();
 }
 
-async function fetchState(doFetch) {
+async function fetchState(doFetch, userId) {
   const url = `https://partner.spreadshirt.de/address-check/partners/${userId}/state`;
 
   const response = await doFetch(url, { method: 'GET' });
@@ -68,11 +67,7 @@ function fromBase64(input) {
   return Buffer.from(input, 'base64').toString('utf8');
 }
 
-/*
-I'll need to implement TUS resumable file uploads:
-https://tus.io/protocols/resumable-upload.html
-*/
-async function createIdea(doFetch, filename) {
+async function createIdea(doFetch, userId, filename) {
   const url = `https://partner.spreadshirt.de/api/v1/image-uploader/users/${userId}/ideas`;
 
   // FIXME automate filename and upload-length
@@ -103,7 +98,6 @@ async function patchIdea(doFetch, createResponse, file) {
       headers: {
         'content-type': 'application/offset+octet-stream',
         'tus-resumable': '1.0.0',
-        // 'upload-offset': '159524',
         'upload-offset': '0',
       },
       body,
@@ -119,10 +113,10 @@ async function patchIdea(doFetch, createResponse, file) {
 
   const authorizedFetch = createAuthorizedFetch(withCookies(withDebug(fetch)), sessionId, apiKey, apiSecret);
 
-  const state = await fetchState(authorizedFetch);
+  const state = await fetchState(authorizedFetch, userId);
   console.log('state', state);
 
-  const creation = await createIdea(authorizedFetch, 'example.png');
+  const creation = await createIdea(authorizedFetch, userId, 'example.png');
   console.log('creation', creation, creation.headers.raw());
 
   const patch = await patchIdea(authorizedFetch, creation, './example.png');
