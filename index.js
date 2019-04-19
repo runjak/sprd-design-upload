@@ -1,4 +1,5 @@
-const { createReadStream } = require('fs');
+const fs = require('fs');
+const path = require('path');
 const fetch = require('node-fetch');
 const Readable = require('stream').Readable;
 
@@ -67,18 +68,30 @@ function fromBase64(input) {
   return Buffer.from(input, 'base64').toString('utf8');
 }
 
-async function createIdea(doFetch, userId, filename) {
-  const url = `https://partner.spreadshirt.de/api/v1/image-uploader/users/${userId}/ideas`;
+function asyncStat(filePath) {
+  return new Promise((fulfill, reject) => {
+    fs.stat(filePath, (error, stats) => {
+      if (error !== null) {
+        reject(error);
+      } else {
+        fulfill(stats);
+      }
+    });
+  });
+}
 
-  // FIXME automate filename and upload-length
+async function createIdea(doFetch, userId, filePath) {
+  const url = `https://partner.spreadshirt.de/api/v1/image-uploader/users/${userId}/ideas`;
+  const { size } = await asyncStat(filePath);
+
   const createResponse = await doFetch(
     url,
     {
       method: 'POST',
       headers: {
         'tus-resumable': '1.0.0',
-        'Upload-Metadata': `filename ${toBase64(filename)}`,
-        'Upload-Length': '159524',
+        'Upload-Metadata': `filename ${toBase64(path.basename(filePath))}`,
+        'Upload-Length': size,
       },
     },
   );
@@ -86,10 +99,9 @@ async function createIdea(doFetch, userId, filename) {
   return createResponse;
 }
 
-// FIXME use some kind of file object for post and patch
-async function patchIdea(doFetch, createResponse, file) {
+async function patchIdea(doFetch, createResponse, filePath) {
   const { location: url } = createResponse.headers.raw();
-  const body = createReadStream(file);
+  const body = fs.createReadStream(filePath);
 
   const patchResponse = await doFetch(
     url,
