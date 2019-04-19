@@ -5,6 +5,9 @@ const Readable = require('stream').Readable;
 
 const { createAuthorizedFetch, withCookies, withDebug } = require('./authorized');
 
+const partnerUrl = 'https://partner.spreadshirt.de'
+const apiBaseUrl = `${partnerUrl}/api/v1`;
+
 const {
   USERNAME: username,
   PASSWORD: password,
@@ -13,7 +16,7 @@ const {
 } = process.env;
 
 async function createSession(doFetch) {
-  const url = `https://partner.spreadshirt.de/api/v1/sessions?mediaType=json`;
+  const url = `${apiBaseUrl}/sessions?mediaType=json`;
   const loginData = {
     rememberMe: false,
     username,
@@ -30,7 +33,7 @@ async function createSession(doFetch) {
 }
 
 async function fetchState(doFetch, userId) {
-  const url = `https://partner.spreadshirt.de/address-check/partners/${userId}/state`;
+  const url = `${partnerUrl}/address-check/partners/${userId}/state`;
 
   const response = await doFetch(url, { method: 'GET' });
 
@@ -38,7 +41,7 @@ async function fetchState(doFetch, userId) {
 }
 
 async function fetchCurrencies(doFetch) {
-  const currenciesUrl = 'https://partner.spreadshirt.de/api/v1/currencies?mediaType=json&fullData=true';
+  const currenciesUrl = `${apiBaseUrl}/currencies?mediaType=json&fullData=true`;
   const currenciesResponse = await doFetch(currenciesUrl, {method: 'GET'});
 
   return currenciesResponse.json();
@@ -53,7 +56,7 @@ function findIdForIsoCodeInCurrenciesData(currenciesData, wantedIsoCode = 'EUR')
 }
 
 async function fetchIdeas(doFetch) {
-  const ideasUrl = `https://partner.spreadshirt.de/api/v1/users/${userId}/ideas?fullData=true&mediaType=json&currencyId=1&locale=de_DE&offset=0&limit=47`;
+  const ideasUrl = `${apiBaseUrl}/users/${userId}/ideas?fullData=true&mediaType=json&currencyId=1&locale=de_DE&offset=0&limit=47`;
 
   const ideasResponse = await doFetch(ideasUrl, {method: 'GET'});
 
@@ -81,7 +84,7 @@ function asyncStat(filePath) {
 }
 
 async function createIdea(doFetch, userId, filePath) {
-  const url = `https://partner.spreadshirt.de/api/v1/image-uploader/users/${userId}/ideas`;
+  const url = `${apiBaseUrl}/image-uploader/users/${userId}/ideas`;
   const { size } = await asyncStat(filePath);
 
   const createResponse = await doFetch(
@@ -121,6 +124,7 @@ async function patchIdea(doFetch, createResponse, filePath) {
 
 (async () => {
   const {id: sessionId, user: {id: userId}} = await createSession(fetch);
+  const filePath = './example.png';
   console.log('created Session', {sessionId, userId});
 
   const authorizedFetch = createAuthorizedFetch(withCookies(withDebug(fetch)), sessionId, apiKey, apiSecret);
@@ -128,10 +132,10 @@ async function patchIdea(doFetch, createResponse, filePath) {
   const state = await fetchState(authorizedFetch, userId);
   console.log('state', state);
 
-  const creation = await createIdea(authorizedFetch, userId, 'example.png');
+  const creation = await createIdea(authorizedFetch, userId, filePath);
   console.log('creation', creation, creation.headers.raw());
 
-  const patch = await patchIdea(authorizedFetch, creation, './example.png');
+  const patch = await patchIdea(authorizedFetch, creation, filePath);
   console.log('patch', patch);
   console.log('patch.headers', patch.headers.raw());
   console.log('patch.text', await patch.text());
