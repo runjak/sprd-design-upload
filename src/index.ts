@@ -1,10 +1,35 @@
-const fs = require('fs');
-const path = require('path');
-const fetch = require('node-fetch');
-const Readable = require('stream').Readable;
-const compareDest = require('date-fns/compare_desc');
+import fs from 'fs';
+import path from 'path';
+import fetch from 'node-fetch';
+import { Readable } from 'stream';
+import compareDest from 'date-fns/compare_desc';
 
-const { createAuthorizedFetch, withCookies, withDebug } = require('./authorized');
+import {FetchFunction, createAuthorizedFetch, withCookies, withDebug} from './fetch';
+
+interface Currency {
+  id: string,
+  isoCode: string,
+};
+
+interface CurrenciesData {
+  currencies: Array<Currency>,
+};
+
+interface Commission {
+  amount: number,
+  currencyId: string,
+};
+
+interface Idea {
+  id: string,
+  href: string,
+  dateCreated: string,
+  comission?: Commission,
+};
+
+interface Ideas {
+  list: Array<Idea>,
+};
 
 const partnerUrl = 'https://partner.spreadshirt.de'
 const apiBaseUrl = `${partnerUrl}/api/v1`;
@@ -16,7 +41,7 @@ const {
   API_SECRET: apiSecret,
 } = process.env;
 
-async function createSession(doFetch) {
+async function createSession(doFetch: FetchFunction) {
   const url = `${apiBaseUrl}/sessions?mediaType=json`;
   const loginData = {
     rememberMe: false,
@@ -33,7 +58,7 @@ async function createSession(doFetch) {
   return createResponse.json();
 }
 
-async function fetchState(doFetch, userId) {
+async function fetchState(doFetch: FetchFunction, userId: string) {
   const url = `${partnerUrl}/address-check/partners/${userId}/state`;
 
   const response = await doFetch(url, { method: 'GET' });
@@ -41,7 +66,7 @@ async function fetchState(doFetch, userId) {
   return response.json();
 }
 
-async function fetchCurrencies(doFetch) {
+async function fetchCurrencies(doFetch: FetchFunction) {
   const url = `${apiBaseUrl}/currencies?mediaType=json&fullData=true`;
 
   const currenciesResponse = await doFetch(url, {method: 'GET'});
@@ -49,7 +74,7 @@ async function fetchCurrencies(doFetch) {
   return currenciesResponse.json();
 }
 
-function findIdForIsoCodeInCurrenciesData(currenciesData, wantedIsoCode = 'EUR') {
+function findIdForIsoCodeInCurrenciesData(currenciesData: CurrenciesData, wantedIsoCode: string = 'EUR'): string | null {
   const { currencies } = currenciesData;
 
   const [currency] = currencies.filter(({isoCode}) => isoCode === wantedIsoCode);
@@ -57,7 +82,7 @@ function findIdForIsoCodeInCurrenciesData(currenciesData, wantedIsoCode = 'EUR')
   return currency ? currency.id : null;
 }
 
-async function fetchIdeas(doFetch, userId) {
+async function fetchIdeas(doFetch: FetchFunction, userId: string) {
   const url = `${apiBaseUrl}/users/${userId}/ideas?fullData=true&mediaType=json&currencyId=1&locale=de_DE&offset=0&limit=47`;
 
   const ideasResponse = await doFetch(url, {method: 'GET'});
@@ -65,9 +90,9 @@ async function fetchIdeas(doFetch, userId) {
   return ideasResponse.json();
 }
 
-function newestIdea(ideas) {
+function newestIdea(ideas: Ideas): Idea | null {
   return ideas.list.reduce(
-    (last, next) => {
+    (last: Idea | null, next: Idea) => {
       if (last === null) {
         return next;
       }
@@ -83,11 +108,11 @@ function newestIdea(ideas) {
   );
 }
 
-function toBase64(input) {
+function toBase64(input: string) {
   return Buffer.from(input).toString('base64');
 }
 
-function asyncStat(filePath) {
+function asyncStat(filePath: string): Promise<fs.Stats> {
   return new Promise((fulfill, reject) => {
     fs.stat(filePath, (error, stats) => {
       if (error !== null) {
@@ -99,7 +124,7 @@ function asyncStat(filePath) {
   });
 }
 
-async function createIdea(doFetch, userId, filePath) {
+async function createIdea(doFetch: FetchFunction, userId: string, filePath: string) {
   const url = `${apiBaseUrl}/image-uploader/users/${userId}/ideas`;
   const { size } = await asyncStat(filePath);
 
@@ -107,6 +132,7 @@ async function createIdea(doFetch, userId, filePath) {
     url,
     {
       method: 'POST',
+      // @ts-ignore: headers are as desired
       headers: {
         'tus-resumable': '1.0.0',
         'Upload-Metadata': `filename ${toBase64(path.basename(filePath))}`,
@@ -118,7 +144,8 @@ async function createIdea(doFetch, userId, filePath) {
   return createResponse;
 }
 
-async function patchIdea(doFetch, createResponse, filePath) {
+async function patchIdea(doFetch: FetchFunction, createResponse: Response, filePath: string) {
+  //  @ts-ignore: headers.raw() exists
   const { location: url } = createResponse.headers.raw();
   const body = fs.createReadStream(filePath);
 
@@ -138,7 +165,7 @@ async function patchIdea(doFetch, createResponse, filePath) {
   return patchResponse;
 }
 
-async function setCommission(doFetch, idea, amount, currency = 'EUR') {
+async function setCommission(doFetch: FetchFunction, idea: Idea, amount: number, currency = 'EUR') {
   const { href, ...rest } = idea;
   const ideaWithCommission = {
     ...rest,
@@ -157,7 +184,7 @@ async function setCommission(doFetch, idea, amount, currency = 'EUR') {
   const {id: sessionId, user: {id: userId}} = await createSession(fetch);
   const filePath = './example.png';
 
-  const authorizedFetch = createAuthorizedFetch(withCookies(fetch), sessionId, apiKey, apiSecret);
+  const authorizedFetch = createAuthorizedFetch(withCookies(fetch), sessionId, apiKey || '', apiSecret || '');
 
   // Need to fetch state to obtain session cookie
   const state = await fetchState(authorizedFetch, userId);
@@ -175,6 +202,11 @@ async function setCommission(doFetch, idea, amount, currency = 'EUR') {
   const ideas = await fetchIdeas(authorizedFetch, userId);
   const newest = newestIdea(ideas);
   console.log('newest', JSON.stringify(newest, undefined, 2));
+
+  if (!newest) {
+    console.log('No newest idea found!');
+    return;
+  }
 
   const withCommision = await setCommission(authorizedFetch, newest, 5);
   console.log('withCommission', JSON.stringify(withCommision, undefined, 2));

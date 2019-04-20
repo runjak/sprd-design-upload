@@ -13,6 +13,12 @@
     "tough-cookie": "^3.0.1"
   },
   "scripts": {
-    "start": "node -r dotenv/config ./index.js"
+    "start": "node -r dotenv/config ./index.js",
+    "build": "./node_modules/.bin/tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^11.13.6",
+    "@types/node-fetch": "^2.3.2",
+    "typescript": "^3.4.4"
   }
 }
