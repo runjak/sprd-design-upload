@@ -24,7 +24,8 @@ interface Idea {
   id: string,
   href: string,
   dateCreated: string,
-  comission?: Commission,
+  dateModified: string | number,
+  commission?: Commission,
 };
 
 interface Ideas {
@@ -37,8 +38,8 @@ const apiBaseUrl = `${partnerUrl}/api/v1`;
 const {
   USERNAME: username,
   PASSWORD: password,
-  API_KEY: apiKey,
-  API_SECRET: apiSecret,
+  API_KEY: apiKey = '',
+  API_SECRET: apiSecret = '',
 } = process.env;
 
 async function createSession(doFetch: FetchFunction) {
@@ -165,17 +166,29 @@ async function patchIdea(doFetch: FetchFunction, createResponse: Response, fileP
   return patchResponse;
 }
 
-async function setCommission(doFetch: FetchFunction, idea: Idea, amount: number, currency = 'EUR') {
-  const { href, ...rest } = idea;
-  const ideaWithCommission = {
-    ...rest,
+function setCommission(idea: Idea, amount: number): Idea {
+  return {
+    ...idea,
     commission: {
       amount,
       currencyId: '1',
     },
   };
+}
 
-  const response = await doFetch(href, {method: 'PUT'});
+async function putIdea(doFetch: FetchFunction, idea: Idea) {
+  // const url = `${idea.href}?mediaType=json&updatePublishing=true`;
+  const url = `${idea.href}?mediaType=json`;
+
+  console.log('putIdea', url);
+
+  const response = await doFetch(url, {
+    method: 'PUT',
+    body: JSON.stringify({
+      ...idea,
+      dateModified: Date.now(),
+    }),
+  });
 
   return response.json();
 }
@@ -184,7 +197,7 @@ async function setCommission(doFetch: FetchFunction, idea: Idea, amount: number,
   const {id: sessionId, user: {id: userId}} = await createSession(fetch);
   const filePath = './example.png';
 
-  const authorizedFetch = createAuthorizedFetch(withCookies(fetch), sessionId, apiKey || '', apiSecret || '');
+  const authorizedFetch = createAuthorizedFetch(withCookies(fetch), sessionId, apiKey, apiSecret);
 
   // Need to fetch state to obtain session cookie
   const state = await fetchState(authorizedFetch, userId);
@@ -208,6 +221,8 @@ async function setCommission(doFetch: FetchFunction, idea: Idea, amount: number,
     return;
   }
 
-  const withCommision = await setCommission(authorizedFetch, newest, 5);
-  console.log('withCommission', JSON.stringify(withCommision, undefined, 2));
+  const withCommission = setCommission(newest, 1.23);
+  const putResponse = await putIdea(authorizedFetch, withCommission);
+
+  console.log('putResponse', putResponse);
 })();
