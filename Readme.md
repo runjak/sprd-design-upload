@@ -14,6 +14,8 @@ This project aims to provide the means to:
 
 This project is intended for use with node, and relies on the [fs](https://nodejs.org/api/fs.html) API to read and stat files.
 
+This project is published on [npmjs.com](https://www.npmjs.com/package/sprd-design-upload).
+
 Example usage
 ---
 
