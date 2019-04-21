@@ -313,6 +313,13 @@ async function fetchAssortment(doFetch: FetchFunction, idea: Idea): Promise<Asso
   return response.json();
 }
 
+function setAssortment(idea: Idea, assortment: Assortment): Idea {
+  return {
+    ...idea,
+    assortment,
+  };
+}
+
 (async () => {
   const {id: sessionId, user: {id: userId}} = await createSession(fetch);
   const filePath = './example.png';
@@ -334,15 +341,20 @@ async function fetchAssortment(doFetch: FetchFunction, idea: Idea): Promise<Asso
 
   const ideas = await fetchIdeas(authorizedFetch, userId);
   const newest = newestIdea(ideas);
-  console.log('newest', JSON.stringify(newest, undefined, 2));
 
   if (!newest) {
     console.log('No newest idea found!');
     return;
   }
 
-  const assortment = await fetchAssortment(authorizedFetch, newest);
-  console.log('assortment', JSON.stringify(assortment, undefined, 2));
+  console.log('newest', JSON.stringify(newest, undefined, 2));
+
+  // const assortment = await fetchAssortment(authorizedFetch, newest);
+  // const withAssortment = setAssortment(newest, assortment);
+
+  // const putResponse = await putIdea(authorizedFetch, withAssortment);
+
+  // console.log('putResponse', JSON.stringify(putResponse, undefined, 2));
 
   // const pos = await fetchPointsOfSale(authorizedFetch, userId);
   // const filteredPos = filterPointsOfSaleByType(pos, 'SHOP');
