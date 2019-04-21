@@ -16,11 +16,13 @@ import {
   PointsOfSale,
   Assortment,
   Session,
+  AuthData,
+  IdeaTranslation,
 } from './types';
 
 import { apiBaseUrl, partnerUrl } from './consts';
 
-import {newestIdea, designUrlForIdea} from './data';
+import {newestIdea, designUrlForIdea, setCommission, filterPointsOfSaleByType, setPublishingDetails, setTranslation, setAssortment} from './data';
 
 const {
   USERNAME = '',
@@ -127,7 +129,7 @@ export async function patchIdea(doFetch: FetchFunction, createResponse: Response
   return patchResponse;
 }
 
-export async function putIdea(doFetch: FetchFunction, idea: Idea, updatePublishing: boolean = false) {
+export async function putIdea(doFetch: FetchFunction, idea: Idea, updatePublishing: boolean) {
   const url = `${idea.href}?mediaType=json${updatePublishing ? '&updatePublishing=true' : ''}`;
 
   const response = await doFetch(url, {
@@ -157,36 +159,63 @@ export async function fetchAssortment(doFetch: FetchFunction, idea: Idea): Promi
   return response.json();
 }
 
-(async () => {
-  const {id: sessionId, user: {id: userId}} = await createSession(fetch, USERNAME, PASSWORD);
-  const filePath = './example.png';
-
-  const authorizedFetch = createAuthorizedFetch(withCookies(fetch), sessionId, API_KEY, API_SECRET);
+export async function sessionFetch({username, password, apiKey, apiSecret}: AuthData): Promise<{doFetch: FetchFunction, userId: string}> {
+  const {id: sessionId, user: {id: userId}} = await createSession(fetch, username, password);
+  const doFetch = createAuthorizedFetch(withCookies(fetch), sessionId, apiKey, apiSecret);
 
   // Need to fetch state to obtain session cookie
-  const state = await fetchState(authorizedFetch, userId);
+  await fetchState(doFetch, userId);
 
-  const ideas = await fetchIdeas(authorizedFetch, userId);
-  const newest = newestIdea(ideas);
+  return { doFetch, userId };
+}
+
+interface PublishData {
+  filePath: string,
+  userId: string,
+  commission: number,
+  translation: IdeaTranslation,
+};
+
+export async function publishAndLink(doFetch: FetchFunction, publishData: PublishData): Promise<string> {
+  const { filePath, userId, commission, translation } = publishData;
+
+  const createResponse = await createIdea(doFetch, userId, filePath);
+  await patchIdea(doFetch, createResponse, filePath);
+
+  const latestIdeas = await fetchIdeas(doFetch, userId);
+  const newest = newestIdea(latestIdeas);
 
   if (!newest) {
-    console.log('No newest idea found!');
-    return;
+    throw new Error('No newest idea found.');
   }
 
-  console.log('newest', JSON.stringify(newest, undefined, 2));
-  console.log(designUrlForIdea(newest));
+  const updatedIdea = await putIdea(
+    doFetch,
+    setCommission(
+      setTranslation(
+        newest,
+        translation,
+      ),
+      commission,
+    ),
+    false,
+  );
 
-  // const assortment = await fetchAssortment(authorizedFetch, newest);
-  // const pos = await fetchPointsOfSale(authorizedFetch, userId);
-  // const filteredPos = filterPointsOfSaleByType(pos, 'SHOP');
+  // FIXME we need to wait here, until the idea can be updated :(
+  console.log({updatedIdea});
 
-  // const tryToPublish = setPublishingDetails(
-  //   setAssortment(newest, assortment),
-  //   filteredPos,
-  // );
-  // console.log('tryToPublish', JSON.stringify(tryToPublish, undefined, 2));
+  const pointsOfSale = await fetchPointsOfSale(doFetch, userId);
+  const assortment = await fetchAssortment(doFetch, newest);
 
-  // const publishResponse = await putIdea(authorizedFetch, tryToPublish);
-  // console.log('publishResponse', JSON.stringify(publishResponse, undefined, 2));
-})();
+  const toPublish = setPublishingDetails(
+    setAssortment(
+      updatedIdea,
+      assortment,
+    ),
+    filterPointsOfSaleByType(pointsOfSale, 'SHOP'),
+  );
+
+  const publishedIdea = await putIdea(doFetch, toPublish, true);
+
+  return designUrlForIdea(publishedIdea);
+}

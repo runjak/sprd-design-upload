@@ -1,3 +1,10 @@
+export interface AuthData {
+  username: string,
+  password: string,
+  apiKey: string,
+  apiSecret: string,
+};
+
 export interface Session {
   id: string,
   user: {
