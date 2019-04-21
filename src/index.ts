@@ -66,7 +66,7 @@ interface PrimarySellable {
   colors: Array<Appearance>
 };
 
-interface AssortmentData {
+interface Assortment {
   filterId: string,
   name: string,
   shortName?: string,
@@ -75,7 +75,7 @@ interface AssortmentData {
   primarySellable?: PrimarySellable,
   assortmentSize?: number,
   subFilters: {
-    [key: string]: AssortmentData,
+    [key: string]: Assortment,
   },
 };
 
@@ -280,7 +280,7 @@ function filterPointsOfSaleByType(pointsOfSale: PointsOfSale, filterType: PointO
   return pointsOfSale.list.filter(({type}) => (type === filterType));
 }
 
-async function fetchAssortment(doFetch: FetchFunction, idea: Idea): Promise<AssortmentData> {
+async function fetchAssortment(doFetch: FetchFunction, idea: Idea): Promise<Assortment> {
   const url = `${idea.href}/assortment?mediaType=json`;
 
   const response = await doFetch(url, {method: 'GET'});
