@@ -1,7 +1,7 @@
 {
   "name": "sprd-design-upload",
   "description": "Automatically upload designs to Spreadshirt and get URLs to use them.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "lib/index.js",
   "author": "Jakob Runge <sicarius@g4t3.de>",
   "homepage": "https://github.com/runjak/sprd-design-upload",
@@ -13,6 +13,10 @@
     "url": "https://github.com/runjak/sprd-design-upload.git"
   },
   "license": "MIT",
+  "files": [
+    "lib",
+    "src"
+  ],
   "dependencies": {
     "async-retry": "^1.2.3",
     "date-fns": "^1.30.1",
