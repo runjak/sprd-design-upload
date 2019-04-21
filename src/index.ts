@@ -45,6 +45,40 @@ interface LegalState {
   publishingAllowed: boolean,
 }
 
+interface Appearance {
+  appearanceId: string,
+  localizedName: string,
+  rgbs: Array<string>,
+  metaColors: Array<{metaColor: string, distance: number}>,
+  designContrast: 'LOW' | 'MEDIUM' | string,
+  excluded: boolean,
+};
+
+interface PrimarySellable {
+  id: string,
+  productType: string,
+  productTypeName: string,
+  vpKey: string,
+  defaultImageUrl: string,
+  productTypeImageUrl: string,
+  assortmentGroupIds: Array<string>,
+  weight: number,
+  colors: Array<Appearance>
+};
+
+interface AssortmentData {
+  filterId: string,
+  name: string,
+  shortName?: string,
+  included: boolean,
+  available: boolean,
+  primarySellable?: PrimarySellable,
+  assortmentSize?: number,
+  subFilters: {
+    [key: string]: AssortmentData,
+  },
+};
+
 interface Idea {
   id: string,
   href: string,
@@ -246,6 +280,14 @@ function filterPointsOfSaleByType(pointsOfSale: PointsOfSale, filterType: PointO
   return pointsOfSale.list.filter(({type}) => (type === filterType));
 }
 
+async function fetchAssortment(doFetch: FetchFunction, idea: Idea): Promise<AssortmentData> {
+  const url = `${idea.href}/assortment?mediaType=json`;
+
+  const response = await doFetch(url, {method: 'GET'});
+
+  return response.json();
+}
+
 (async () => {
   const {id: sessionId, user: {id: userId}} = await createSession(fetch);
   const filePath = './example.png';
@@ -274,14 +316,17 @@ function filterPointsOfSaleByType(pointsOfSale: PointsOfSale, filterType: PointO
     return;
   }
 
-  const pos = await fetchPointsOfSale(authorizedFetch, userId);
-  const filteredPos = filterPointsOfSaleByType(pos, 'SHOP');
-  console.log({ filteredPos });
+  const assortment = await fetchAssortment(authorizedFetch, newest);
+  console.log('assortment', JSON.stringify(assortment, undefined, 2));
 
-  const withPublishingDetails = setPublishingDetails(newest, filteredPos);
-  const putResponse = await putIdea(authorizedFetch, withPublishingDetails);
+  // const pos = await fetchPointsOfSale(authorizedFetch, userId);
+  // const filteredPos = filterPointsOfSaleByType(pos, 'SHOP');
+  // console.log({ filteredPos });
 
-  console.log('putResponse', JSON.stringify(putResponse, undefined, 2));
+  // const withPublishingDetails = setPublishingDetails(newest, filteredPos);
+  // const putResponse = await putIdea(authorizedFetch, withPublishingDetails);
+
+  // console.log('putResponse', JSON.stringify(putResponse, undefined, 2));
 
   // const withCommission = setCommission(newest, 1.23);
   // const putResponse = await putIdea(authorizedFetch, withCommission);
