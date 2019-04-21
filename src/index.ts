@@ -2,29 +2,25 @@ import fs from 'fs';
 import path from 'path';
 import fetch, { Response } from 'node-fetch';
 import { Readable } from 'stream';
-import compareDest from 'date-fns/compare_desc';
-import uniqBy from 'lodash/uniqBy';
 
 import {
   FetchFunction,
   createAuthorizedFetch,
   withCookies,
 } from './fetch';
+
 import {
   CurrenciesData,
   Idea,
   Ideas,
-  PointOfSale,
   PointsOfSale,
   Assortment,
-  IdeaTranslation,
-  PointOfSaleType,
   Session,
 } from './types';
 
-const partnerUrl = 'https://partner.spreadshirt.de'
-const apiBaseUrl = `${partnerUrl}/api/v1`;
-const shopUrl = 'https://shop.spreadshirt.de';
+import { apiBaseUrl, partnerUrl } from './consts';
+
+import {newestIdea, designUrlForIdea} from './data';
 
 const {
   USERNAME: username,
@@ -66,38 +62,12 @@ async function fetchCurrencies(doFetch: FetchFunction): Promise<CurrenciesData> 
   return currenciesResponse.json();
 }
 
-function findIdForIsoCodeInCurrenciesData(currenciesData: CurrenciesData, wantedIsoCode: string = 'EUR'): string | null {
-  const { currencies } = currenciesData;
-
-  const [currency] = currencies.filter(({isoCode}) => isoCode === wantedIsoCode);
-
-  return currency ? currency.id : null;
-}
-
 async function fetchIdeas(doFetch: FetchFunction, userId: string): Promise<Ideas> {
   const url = `${apiBaseUrl}/users/${userId}/ideas?fullData=true&mediaType=json&currencyId=1&locale=de_DE&offset=0&limit=47`;
 
   const ideasResponse = await doFetch(url, {method: 'GET'});
 
   return ideasResponse.json();
-}
-
-function newestIdea(ideas: Ideas): Idea | null {
-  return ideas.list.reduce(
-    (last: Idea | null, next: Idea) => {
-      if (last === null) {
-        return next;
-      }
-
-      const cmp = compareDest(
-        new Date(last.dateCreated),
-        new Date(next.dateCreated),
-      );
-
-      return (cmp < 0) ? last : next;
-    },
-    null,
-  );
 }
 
 function toBase64(input: string): string {
@@ -157,16 +127,6 @@ async function patchIdea(doFetch: FetchFunction, createResponse: Response, fileP
   return patchResponse;
 }
 
-function setCommission(idea: Idea, amount: number): Idea {
-  return {
-    ...idea,
-    commission: {
-      amount,
-      currencyId: '1',
-    },
-  };
-}
-
 async function putIdea(doFetch: FetchFunction, idea: Idea, updatePublishing: boolean = false) {
   const url = `${idea.href}?mediaType=json${updatePublishing ? '&updatePublishing=true' : ''}`;
 
@@ -189,52 +149,12 @@ async function fetchPointsOfSale(doFetch: FetchFunction, userId: string): Promis
   return response.json();
 }
 
-function setPublishingDetails(idea: Idea, pointsOfSale: Array<PointOfSale>): Idea {
-  return {
-    ...idea,
-    publishingDetails: pointsOfSale.map((pointOfSale) => ({
-      pointOfSale: {
-        ...pointOfSale,
-        allowed: true,
-      }
-    })),
-  };
-}
-
-function filterPointsOfSaleByType(pointsOfSale: PointsOfSale, filterType: PointOfSaleType): Array<PointOfSale> {
-  return pointsOfSale.list.filter(({type}) => (type === filterType));
-}
-
 async function fetchAssortment(doFetch: FetchFunction, idea: Idea): Promise<Assortment> {
   const url = `${idea.href}/assortment?mediaType=json`;
 
   const response = await doFetch(url, {method: 'GET'});
 
   return response.json();
-}
-
-function setAssortment(idea: Idea, assortment: Assortment): Idea {
-  return {
-    ...idea,
-    assortment,
-  };
-}
-
-function setTranslation(idea: Idea, translation: IdeaTranslation): Idea {
-  return {
-    ...idea,
-    translations: uniqBy(
-      [translation, ...idea.translations],
-      ({locale}) => (locale),
-    ),
-  };
-}
-
-function designUrlForIdea(idea: Idea, productTypeId: string = '812'): string {
-  const pointsOfSale = (idea.publishingDetails || []).map(p => p.pointOfSale);
-  const [shopName = ''] = pointsOfSale.filter(({type}) => (type === 'SHOP')).map(p => p.name);
-
-  return `${shopUrl}/${shopName}/create?design=${idea.mainDesignId}&productType=${productTypeId}`;
 }
 
 (async () => {
