@@ -40,11 +40,17 @@ interface PublishedPointOfSale extends PointOfSale {
   allowed: boolean,
 };
 
+interface LegalState {
+  pointOfSaleType: PointOfSaleType,
+  publishingAllowed: boolean,
+}
+
 interface Idea {
   id: string,
   href: string,
   dateCreated: string,
   dateModified: string | number,
+  legalStates: Array<LegalState>,
   commission?: Commission,
   publishingDetails?: Array<{
     pointOfSale: PublishedPointOfSale,
@@ -275,7 +281,7 @@ function filterPointsOfSaleByType(pointsOfSale: PointsOfSale, filterType: PointO
   const withPublishingDetails = setPublishingDetails(newest, filteredPos);
   const putResponse = await putIdea(authorizedFetch, withPublishingDetails);
 
-  console.log({ putResponse });
+  console.log('putResponse', JSON.stringify(putResponse, undefined, 2));
 
   // const withCommission = setCommission(newest, 1.23);
   // const putResponse = await putIdea(authorizedFetch, withCommission);
