@@ -23,13 +23,13 @@ import { apiBaseUrl, partnerUrl } from './consts';
 import {newestIdea, designUrlForIdea} from './data';
 
 const {
-  USERNAME: username,
-  PASSWORD: password,
-  API_KEY: apiKey = '',
-  API_SECRET: apiSecret = '',
+  USERNAME = '',
+  PASSWORD = '',
+  API_KEY = '',
+  API_SECRET = '',
 } = process.env;
 
-async function createSession(doFetch: FetchFunction): Promise<Session> {
+async function createSession(doFetch: FetchFunction, username: string, password: string): Promise<Session> {
   const url = `${apiBaseUrl}/sessions?mediaType=json`;
   const loginData = {
     rememberMe: false,
@@ -158,10 +158,10 @@ async function fetchAssortment(doFetch: FetchFunction, idea: Idea): Promise<Asso
 }
 
 (async () => {
-  const {id: sessionId, user: {id: userId}} = await createSession(fetch);
+  const {id: sessionId, user: {id: userId}} = await createSession(fetch, USERNAME, PASSWORD);
   const filePath = './example.png';
 
-  const authorizedFetch = createAuthorizedFetch(withCookies(fetch), sessionId, apiKey, apiSecret);
+  const authorizedFetch = createAuthorizedFetch(withCookies(fetch), sessionId, API_KEY, API_SECRET);
 
   // Need to fetch state to obtain session cookie
   const state = await fetchState(authorizedFetch, userId);
