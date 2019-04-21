@@ -123,6 +123,7 @@ interface Ideas {
 
 const partnerUrl = 'https://partner.spreadshirt.de'
 const apiBaseUrl = `${partnerUrl}/api/v1`;
+const shopUrl = 'https://shop.spreadshirt.de';
 
 const {
   USERNAME: username,
@@ -328,8 +329,16 @@ function setTranslation(idea: Idea, translation: IdeaTranslation): Idea {
   };
 }
 
+function designUrlForIdea(idea: Idea, productTypeId: string = '812'): string {
+  const pointsOfSale = (idea.publishingDetails || []).map(p => p.pointOfSale);
+  const [shopName = ''] = pointsOfSale.filter(({type}) => (type === 'SHOP')).map(p => p.name);
+
+  return `${shopUrl}/${shopName}/create?design=${idea.mainDesignId}&productType=${productTypeId}`;
+}
+
 (async () => {
-  const {id: sessionId, user: {id: userId}} = await createSession(fetch);
+  const session = await createSession(fetch);
+  const {id: sessionId, user: {id: userId}} = session;
   const filePath = './example.png';
 
   const authorizedFetch = createAuthorizedFetch(withCookies(fetch), sessionId, apiKey, apiSecret);
@@ -337,15 +346,7 @@ function setTranslation(idea: Idea, translation: IdeaTranslation): Idea {
   // Need to fetch state to obtain session cookie
   const state = await fetchState(authorizedFetch, userId);
 
-  // const creation = await createIdea(authorizedFetch, userId, filePath);
-  // console.log('creation', creation);
-  // console.log('creation.headers', creation.headers.raw());
-  // console.log('creation.text', await creation.text())
-
-  // const patch = await patchIdea(authorizedFetch, creation, filePath);
-  // console.log('patch', patch);
-  // console.log('patch.headers', patch.headers.raw());
-  // console.log('patch.text', await patch.text());
+  console.log('session', JSON.stringify(session, undefined, 2));
 
   const ideas = await fetchIdeas(authorizedFetch, userId);
   const newest = newestIdea(ideas);
@@ -356,17 +357,18 @@ function setTranslation(idea: Idea, translation: IdeaTranslation): Idea {
   }
 
   console.log('newest', JSON.stringify(newest, undefined, 2));
+  console.log(designUrlForIdea(newest));
 
-  const assortment = await fetchAssortment(authorizedFetch, newest);
-  const pos = await fetchPointsOfSale(authorizedFetch, userId);
-  const filteredPos = filterPointsOfSaleByType(pos, 'SHOP');
+  // const assortment = await fetchAssortment(authorizedFetch, newest);
+  // const pos = await fetchPointsOfSale(authorizedFetch, userId);
+  // const filteredPos = filterPointsOfSaleByType(pos, 'SHOP');
 
-  const tryToPublish = setPublishingDetails(
-    setAssortment(newest, assortment),
-    filteredPos,
-  );
-  console.log('tryToPublish', JSON.stringify(tryToPublish, undefined, 2));
+  // const tryToPublish = setPublishingDetails(
+  //   setAssortment(newest, assortment),
+  //   filteredPos,
+  // );
+  // console.log('tryToPublish', JSON.stringify(tryToPublish, undefined, 2));
 
-  const publishResponse = await putIdea(authorizedFetch, tryToPublish);
-  console.log('publishResponse', JSON.stringify(publishResponse, undefined, 2));
+  // const publishResponse = await putIdea(authorizedFetch, tryToPublish);
+  // console.log('publishResponse', JSON.stringify(publishResponse, undefined, 2));
 })();
