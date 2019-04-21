@@ -1,12 +1,26 @@
 import fs from 'fs';
 import path from 'path';
-import fetch from 'node-fetch';
+import fetch, { Response } from 'node-fetch';
 import { Readable } from 'stream';
 import compareDest from 'date-fns/compare_desc';
 import uniqBy from 'lodash/uniqBy';
 
-import {FetchFunction, createAuthorizedFetch, withCookies, withDebug} from './fetch';
-import {CurrenciesData, Idea, Ideas, PointOfSale, PointsOfSale, Assortment, IdeaTranslation, PointOfSaleType} from './types';
+import {
+  FetchFunction,
+  createAuthorizedFetch,
+  withCookies,
+} from './fetch';
+import {
+  CurrenciesData,
+  Idea,
+  Ideas,
+  PointOfSale,
+  PointsOfSale,
+  Assortment,
+  IdeaTranslation,
+  PointOfSaleType,
+  Session,
+} from './types';
 
 const partnerUrl = 'https://partner.spreadshirt.de'
 const apiBaseUrl = `${partnerUrl}/api/v1`;
@@ -19,7 +33,7 @@ const {
   API_SECRET: apiSecret = '',
 } = process.env;
 
-async function createSession(doFetch: FetchFunction) {
+async function createSession(doFetch: FetchFunction): Promise<Session> {
   const url = `${apiBaseUrl}/sessions?mediaType=json`;
   const loginData = {
     rememberMe: false,
@@ -36,7 +50,7 @@ async function createSession(doFetch: FetchFunction) {
   return createResponse.json();
 }
 
-async function fetchState(doFetch: FetchFunction, userId: string) {
+async function fetchState(doFetch: FetchFunction, userId: string): Promise<Object> {
   const url = `${partnerUrl}/address-check/partners/${userId}/state`;
 
   const response = await doFetch(url, { method: 'GET' });
@@ -44,7 +58,7 @@ async function fetchState(doFetch: FetchFunction, userId: string) {
   return response.json();
 }
 
-async function fetchCurrencies(doFetch: FetchFunction) {
+async function fetchCurrencies(doFetch: FetchFunction): Promise<CurrenciesData> {
   const url = `${apiBaseUrl}/currencies?mediaType=json&fullData=true`;
 
   const currenciesResponse = await doFetch(url, {method: 'GET'});
@@ -60,7 +74,7 @@ function findIdForIsoCodeInCurrenciesData(currenciesData: CurrenciesData, wanted
   return currency ? currency.id : null;
 }
 
-async function fetchIdeas(doFetch: FetchFunction, userId: string) {
+async function fetchIdeas(doFetch: FetchFunction, userId: string): Promise<Ideas> {
   const url = `${apiBaseUrl}/users/${userId}/ideas?fullData=true&mediaType=json&currencyId=1&locale=de_DE&offset=0&limit=47`;
 
   const ideasResponse = await doFetch(url, {method: 'GET'});
@@ -86,7 +100,7 @@ function newestIdea(ideas: Ideas): Idea | null {
   );
 }
 
-function toBase64(input: string) {
+function toBase64(input: string): string {
   return Buffer.from(input).toString('base64');
 }
 
@@ -102,7 +116,7 @@ function asyncStat(filePath: string): Promise<fs.Stats> {
   });
 }
 
-async function createIdea(doFetch: FetchFunction, userId: string, filePath: string) {
+async function createIdea(doFetch: FetchFunction, userId: string, filePath: string): Promise<Response> {
   const url = `${apiBaseUrl}/image-uploader/users/${userId}/ideas`;
   const { size } = await asyncStat(filePath);
 
@@ -122,12 +136,12 @@ async function createIdea(doFetch: FetchFunction, userId: string, filePath: stri
   return createResponse;
 }
 
-async function patchIdea(doFetch: FetchFunction, createResponse: Response, filePath: string) {
-  //  @ts-ignore: headers.raw() exists
+async function patchIdea(doFetch: FetchFunction, createResponse: Response, filePath: string): Promise<Response> {
   const { location: url } = createResponse.headers.raw();
   const body = fs.createReadStream(filePath);
 
   const patchResponse = await doFetch(
+    // @ts-ignore url is string not string[].
     url,
     {
       method: 'PATCH',
@@ -224,16 +238,13 @@ function designUrlForIdea(idea: Idea, productTypeId: string = '812'): string {
 }
 
 (async () => {
-  const session = await createSession(fetch);
-  const {id: sessionId, user: {id: userId}} = session;
+  const {id: sessionId, user: {id: userId}} = await createSession(fetch);
   const filePath = './example.png';
 
   const authorizedFetch = createAuthorizedFetch(withCookies(fetch), sessionId, apiKey, apiSecret);
 
   // Need to fetch state to obtain session cookie
   const state = await fetchState(authorizedFetch, userId);
-
-  console.log('session', JSON.stringify(session, undefined, 2));
 
   const ideas = await fetchIdeas(authorizedFetch, userId);
   const newest = newestIdea(ideas);

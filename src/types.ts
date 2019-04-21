@@ -1,3 +1,10 @@
+export interface Session {
+  id: string,
+  user: {
+    id: string,
+  },
+};
+
 export interface Currency {
   id: string,
   isoCode: string,
