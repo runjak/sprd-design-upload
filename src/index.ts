@@ -267,7 +267,7 @@ function setCommission(idea: Idea, amount: number): Idea {
 
 async function putIdea(doFetch: FetchFunction, idea: Idea) {
   // const url = `${idea.href}?mediaType=json&updatePublishing=true`;
-  const url = `${idea.href}?mediaType=json`;
+  const url = `${idea.href}?mediaType=json&updatePublishing=true`;
 
   console.log('putIdea', url);
 
@@ -360,37 +360,29 @@ function setTranslation(idea: Idea, translation: IdeaTranslation): Idea {
 
   console.log('newest', JSON.stringify(newest, undefined, 2));
 
-  const withTranslation = setTranslation(newest, {
-    name: 'hurz',
-    description: 'magic happened here',
-    locale: 'de_DE',
-    autotranslated: false,
-    tags: [],
-  });
+  // const withTranslation = setTranslation(newest, {
+  //   name: 'hurz',
+  //   description: 'magic happened here',
+  //   locale: 'de_DE',
+  //   autotranslated: false,
+  //   tags: [],
+  // });
 
-  console.log('withTranslation', JSON.stringify(withTranslation, undefined, 2));
+  // console.log('withTranslation', JSON.stringify(withTranslation, undefined, 2));
 
-  const putResponse = await putIdea(authorizedFetch, withTranslation);
-  console.log('putResponse', JSON.stringify(putResponse, undefined, 2));
-
-  // const assortment = await fetchAssortment(authorizedFetch, newest);
-  // const withAssortment = setAssortment(newest, assortment);
-
-  // const putResponse = await putIdea(authorizedFetch, withAssortment);
-
+  // const putResponse = await putIdea(authorizedFetch, withTranslation);
   // console.log('putResponse', JSON.stringify(putResponse, undefined, 2));
 
-  // const pos = await fetchPointsOfSale(authorizedFetch, userId);
-  // const filteredPos = filterPointsOfSaleByType(pos, 'SHOP');
-  // console.log({ filteredPos });
+  const assortment = await fetchAssortment(authorizedFetch, newest);
+  const pos = await fetchPointsOfSale(authorizedFetch, userId);
+  const filteredPos = filterPointsOfSaleByType(pos, 'SHOP');
 
-  // const withPublishingDetails = setPublishingDetails(newest, filteredPos);
-  // const putResponse = await putIdea(authorizedFetch, withPublishingDetails);
+  const tryToPublish = setPublishingDetails(
+    setAssortment(newest, assortment),
+    filteredPos,
+  );
+  console.log('tryToPublish', JSON.stringify(tryToPublish, undefined, 2));
 
-  // console.log('putResponse', JSON.stringify(putResponse, undefined, 2));
-
-  // const withCommission = setCommission(newest, 1.23);
-  // const putResponse = await putIdea(authorizedFetch, withCommission);
-
-  // console.log('putResponse', putResponse);
+  const publishResponse = await putIdea(authorizedFetch, tryToPublish);
+  console.log('publishResponse', JSON.stringify(publishResponse, undefined, 2));
 })();
