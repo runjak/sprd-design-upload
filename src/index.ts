@@ -20,6 +20,22 @@ interface Commission {
   currencyId: string,
 };
 
+type PointOfSaleType = 'SHOP' | 'CYO' | 'MARKETPLACE';
+
+interface PointOfSale {
+  id: string,
+  name?: string,
+  type: PointOfSaleType,
+  target: {
+    id: string,
+    currencyId?: string,
+  }
+};
+
+interface PointsOfSale {
+  list: Array<PointOfSale>,
+};
+
 interface Idea {
   id: string,
   href: string,
@@ -193,6 +209,14 @@ async function putIdea(doFetch: FetchFunction, idea: Idea) {
   return response.json();
 }
 
+async function fetchPointsOfSale(doFetch: FetchFunction, userId: string): Promise<PointsOfSale> {
+  const url = `${apiBaseUrl}/users/${userId}/pointsOfSale?mediaType=json`;
+
+  const response = await doFetch(url, {method: 'GET'});
+
+  return response.json();
+}
+
 (async () => {
   const {id: sessionId, user: {id: userId}} = await createSession(fetch);
   const filePath = './example.png';
@@ -212,17 +236,20 @@ async function putIdea(doFetch: FetchFunction, idea: Idea) {
   // console.log('patch.headers', patch.headers.raw());
   // console.log('patch.text', await patch.text());
 
-  const ideas = await fetchIdeas(authorizedFetch, userId);
-  const newest = newestIdea(ideas);
-  console.log('newest', JSON.stringify(newest, undefined, 2));
+  // const ideas = await fetchIdeas(authorizedFetch, userId);
+  // const newest = newestIdea(ideas);
+  // console.log('newest', JSON.stringify(newest, undefined, 2));
 
-  if (!newest) {
-    console.log('No newest idea found!');
-    return;
-  }
+  // if (!newest) {
+  //   console.log('No newest idea found!');
+  //   return;
+  // }
 
-  const withCommission = setCommission(newest, 1.23);
-  const putResponse = await putIdea(authorizedFetch, withCommission);
+  const pos = await fetchPointsOfSale(authorizedFetch, userId);
+  console.log('pos', JSON.stringify(pos, undefined, 2));
 
-  console.log('putResponse', putResponse);
+  // const withCommission = setCommission(newest, 1.23);
+  // const putResponse = await putIdea(authorizedFetch, withCommission);
+
+  // console.log('putResponse', putResponse);
 })();
