@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import fetch, { Response } from 'node-fetch';
 import { Readable } from 'stream';
+import retry from 'async-retry';
 
 import {
   FetchFunction,
@@ -18,6 +19,7 @@ import {
   Session,
   AuthData,
   IdeaTranslation,
+  ApiError,
 } from './types';
 
 import { apiBaseUrl, partnerUrl } from './consts';
@@ -140,7 +142,13 @@ export async function putIdea(doFetch: FetchFunction, idea: Idea, updatePublishi
     }),
   });
 
-  return response.json();
+  const responseData: Idea | ApiError = await response.json();
+
+  if ('errorCode' in responseData) {
+    throw new Error(JSON.stringify(responseData));
+  }
+
+  return responseData;
 }
 
 export async function fetchPointsOfSale(doFetch: FetchFunction, userId: string): Promise<PointsOfSale> {
@@ -189,20 +197,16 @@ export async function publishAndLink(doFetch: FetchFunction, publishData: Publis
     throw new Error('No newest idea found.');
   }
 
-  const updatedIdea = await putIdea(
-    doFetch,
-    setCommission(
-      setTranslation(
-        newest,
-        translation,
-      ),
-      commission,
+  const ideaUpdate = setCommission(
+    setTranslation(
+      newest,
+      translation,
     ),
-    false,
+    commission,
   );
-
-  // FIXME we need to wait here, until the idea can be updated :(
-  console.log({updatedIdea});
+  const updatedIdea = await retry((): Promise<Idea> => (
+    putIdea(doFetch, ideaUpdate, false)
+  ));
 
   const pointsOfSale = await fetchPointsOfSale(doFetch, userId);
   const assortment = await fetchAssortment(doFetch, newest);

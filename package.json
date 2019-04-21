@@ -5,6 +5,7 @@
   "author": "Jakob Runge <sicarius@g4t3.de>",
   "license": "MIT",
   "dependencies": {
+    "async-retry": "^1.2.3",
     "date-fns": "^1.30.1",
     "dotenv": "^7.0.0",
     "fetch-cookie": "^0.7.2",
@@ -18,6 +19,7 @@
     "build": "./node_modules/.bin/tsc"
   },
   "devDependencies": {
+    "@types/async-retry": "^1.4.1",
     "@types/lodash": "^4.14.123",
     "@types/node": "^11.13.6",
     "@types/node-fetch": "^2.3.2",

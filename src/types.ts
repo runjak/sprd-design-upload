@@ -125,3 +125,10 @@ export interface Idea {
 export interface Ideas {
   list: Array<Idea>,
 };
+
+export interface ApiError {
+  errorCode: string,
+  message: string,
+  errorId: string,
+  additional: object,
+};
