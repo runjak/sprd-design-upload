@@ -29,7 +29,7 @@ const {
   API_SECRET = '',
 } = process.env;
 
-async function createSession(doFetch: FetchFunction, username: string, password: string): Promise<Session> {
+export async function createSession(doFetch: FetchFunction, username: string, password: string): Promise<Session> {
   const url = `${apiBaseUrl}/sessions?mediaType=json`;
   const loginData = {
     rememberMe: false,
@@ -46,7 +46,7 @@ async function createSession(doFetch: FetchFunction, username: string, password:
   return createResponse.json();
 }
 
-async function fetchState(doFetch: FetchFunction, userId: string): Promise<Object> {
+export async function fetchState(doFetch: FetchFunction, userId: string): Promise<Object> {
   const url = `${partnerUrl}/address-check/partners/${userId}/state`;
 
   const response = await doFetch(url, { method: 'GET' });
@@ -54,7 +54,7 @@ async function fetchState(doFetch: FetchFunction, userId: string): Promise<Objec
   return response.json();
 }
 
-async function fetchCurrencies(doFetch: FetchFunction): Promise<CurrenciesData> {
+export async function fetchCurrencies(doFetch: FetchFunction): Promise<CurrenciesData> {
   const url = `${apiBaseUrl}/currencies?mediaType=json&fullData=true`;
 
   const currenciesResponse = await doFetch(url, {method: 'GET'});
@@ -62,7 +62,7 @@ async function fetchCurrencies(doFetch: FetchFunction): Promise<CurrenciesData> 
   return currenciesResponse.json();
 }
 
-async function fetchIdeas(doFetch: FetchFunction, userId: string): Promise<Ideas> {
+export async function fetchIdeas(doFetch: FetchFunction, userId: string): Promise<Ideas> {
   const url = `${apiBaseUrl}/users/${userId}/ideas?fullData=true&mediaType=json&currencyId=1&locale=de_DE&offset=0&limit=47`;
 
   const ideasResponse = await doFetch(url, {method: 'GET'});
@@ -86,7 +86,7 @@ function asyncStat(filePath: string): Promise<fs.Stats> {
   });
 }
 
-async function createIdea(doFetch: FetchFunction, userId: string, filePath: string): Promise<Response> {
+export async function createIdea(doFetch: FetchFunction, userId: string, filePath: string): Promise<Response> {
   const url = `${apiBaseUrl}/image-uploader/users/${userId}/ideas`;
   const { size } = await asyncStat(filePath);
 
@@ -106,7 +106,7 @@ async function createIdea(doFetch: FetchFunction, userId: string, filePath: stri
   return createResponse;
 }
 
-async function patchIdea(doFetch: FetchFunction, createResponse: Response, filePath: string): Promise<Response> {
+export async function patchIdea(doFetch: FetchFunction, createResponse: Response, filePath: string): Promise<Response> {
   const { location: url } = createResponse.headers.raw();
   const body = fs.createReadStream(filePath);
 
@@ -127,7 +127,7 @@ async function patchIdea(doFetch: FetchFunction, createResponse: Response, fileP
   return patchResponse;
 }
 
-async function putIdea(doFetch: FetchFunction, idea: Idea, updatePublishing: boolean = false) {
+export async function putIdea(doFetch: FetchFunction, idea: Idea, updatePublishing: boolean = false) {
   const url = `${idea.href}?mediaType=json${updatePublishing ? '&updatePublishing=true' : ''}`;
 
   const response = await doFetch(url, {
@@ -141,7 +141,7 @@ async function putIdea(doFetch: FetchFunction, idea: Idea, updatePublishing: boo
   return response.json();
 }
 
-async function fetchPointsOfSale(doFetch: FetchFunction, userId: string): Promise<PointsOfSale> {
+export async function fetchPointsOfSale(doFetch: FetchFunction, userId: string): Promise<PointsOfSale> {
   const url = `${apiBaseUrl}/users/${userId}/pointsOfSale?mediaType=json`;
 
   const response = await doFetch(url, {method: 'GET'});
@@ -149,7 +149,7 @@ async function fetchPointsOfSale(doFetch: FetchFunction, userId: string): Promis
   return response.json();
 }
 
-async function fetchAssortment(doFetch: FetchFunction, idea: Idea): Promise<Assortment> {
+export async function fetchAssortment(doFetch: FetchFunction, idea: Idea): Promise<Assortment> {
   const url = `${idea.href}/assortment?mediaType=json`;
 
   const response = await doFetch(url, {method: 'GET'});
