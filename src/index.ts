@@ -36,12 +36,19 @@ interface PointsOfSale {
   list: Array<PointOfSale>,
 };
 
+interface PublishedPointOfSale extends PointOfSale {
+  allowed: boolean,
+};
+
 interface Idea {
   id: string,
   href: string,
   dateCreated: string,
   dateModified: string | number,
   commission?: Commission,
+  publishingDetails?: Array<{
+    pointOfSale: PublishedPointOfSale,
+  }>,
 };
 
 interface Ideas {
@@ -217,6 +224,22 @@ async function fetchPointsOfSale(doFetch: FetchFunction, userId: string): Promis
   return response.json();
 }
 
+function setPublishingDetails(idea: Idea, pointsOfSale: Array<PointOfSale>): Idea {
+  return {
+    ...idea,
+    publishingDetails: pointsOfSale.map((pointOfSale) => ({
+      pointOfSale: {
+        ...pointOfSale,
+        allowed: true,
+      }
+    })),
+  };
+}
+
+function filterPointsOfSaleByType(pointsOfSale: PointsOfSale, filterType: PointOfSaleType): Array<PointOfSale> {
+  return pointsOfSale.list.filter(({type}) => (type === filterType));
+}
+
 (async () => {
   const {id: sessionId, user: {id: userId}} = await createSession(fetch);
   const filePath = './example.png';
@@ -236,17 +259,23 @@ async function fetchPointsOfSale(doFetch: FetchFunction, userId: string): Promis
   // console.log('patch.headers', patch.headers.raw());
   // console.log('patch.text', await patch.text());
 
-  // const ideas = await fetchIdeas(authorizedFetch, userId);
-  // const newest = newestIdea(ideas);
-  // console.log('newest', JSON.stringify(newest, undefined, 2));
+  const ideas = await fetchIdeas(authorizedFetch, userId);
+  const newest = newestIdea(ideas);
+  console.log('newest', JSON.stringify(newest, undefined, 2));
 
-  // if (!newest) {
-  //   console.log('No newest idea found!');
-  //   return;
-  // }
+  if (!newest) {
+    console.log('No newest idea found!');
+    return;
+  }
 
   const pos = await fetchPointsOfSale(authorizedFetch, userId);
-  console.log('pos', JSON.stringify(pos, undefined, 2));
+  const filteredPos = filterPointsOfSaleByType(pos, 'SHOP');
+  console.log({ filteredPos });
+
+  const withPublishingDetails = setPublishingDetails(newest, filteredPos);
+  const putResponse = await putIdea(authorizedFetch, withPublishingDetails);
+
+  console.log({ putResponse });
 
   // const withCommission = setCommission(newest, 1.23);
   // const putResponse = await putIdea(authorizedFetch, withCommission);
