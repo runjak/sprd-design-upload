@@ -79,16 +79,41 @@ interface Assortment {
   },
 };
 
+interface IdeaTranslation {
+  name: string,
+  tags: Array<string>,
+  locale: string,
+  autotranslated: boolean,
+  description?: string,
+};
+
+interface IdeaResource {
+  type: 'default' | 'list-preview' | string,
+  href: string,
+};
+
 interface Idea {
   id: string,
   href: string,
   dateCreated: string,
   dateModified: string | number,
+  userId: string,
+  state: 'ACTIVE' | string,
+  mainDesignId?: string,
+  processingState: 'NEW' | string,
   legalStates: Array<LegalState>,
   commission?: Commission,
   publishingDetails?: Array<{
     pointOfSale: PublishedPointOfSale,
   }>,
+  assortment?: Assortment,
+  properties?: {
+    configuration: string,
+  },
+  translations: Array<IdeaTranslation>,
+  flags: Array<string>,
+  resources?: Array<IdeaResource>,
+  shopCollectionIds: Array<string>,
 };
 
 interface Ideas {
