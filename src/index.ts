@@ -265,11 +265,8 @@ function setCommission(idea: Idea, amount: number): Idea {
   };
 }
 
-async function putIdea(doFetch: FetchFunction, idea: Idea) {
-  // const url = `${idea.href}?mediaType=json&updatePublishing=true`;
-  const url = `${idea.href}?mediaType=json&updatePublishing=true`;
-
-  console.log('putIdea', url);
+async function putIdea(doFetch: FetchFunction, idea: Idea, updatePublishing: boolean = false) {
+  const url = `${idea.href}?mediaType=json${updatePublishing ? '&updatePublishing=true' : ''}`;
 
   const response = await doFetch(url, {
     method: 'PUT',
@@ -359,19 +356,6 @@ function setTranslation(idea: Idea, translation: IdeaTranslation): Idea {
   }
 
   console.log('newest', JSON.stringify(newest, undefined, 2));
-
-  // const withTranslation = setTranslation(newest, {
-  //   name: 'hurz',
-  //   description: 'magic happened here',
-  //   locale: 'de_DE',
-  //   autotranslated: false,
-  //   tags: [],
-  // });
-
-  // console.log('withTranslation', JSON.stringify(withTranslation, undefined, 2));
-
-  // const putResponse = await putIdea(authorizedFetch, withTranslation);
-  // console.log('putResponse', JSON.stringify(putResponse, undefined, 2));
 
   const assortment = await fetchAssortment(authorizedFetch, newest);
   const pos = await fetchPointsOfSale(authorizedFetch, userId);
