@@ -31,6 +31,20 @@ It uses environment variables that can be read from `.env` which should be struc
 1. It calls `sessionFetch` to create a fetch function that works similarly to [node-fetch](https://www.npmjs.com/package/node-fetch) but also handles authentication as required by the API.
 2. It calls `publishAndLink` with a fetch function and the data necessary to upload and publish a design.
 
+Project support
+---
+
+The question came up whether this project has continuous support.
+Currently aims are:
+
+* Dependencies should be updated from time to time.
+* PRs should be reacted to in a few days.
+* If something breaks an effort will be made to repair it.
+  * There will be no monitoring of library stability so please feel free to alert of breakages either by creating an issue or by contacting [@sicarius](https://twitter.com/sicarius) on Twitter.
+* No big effort will be made to actively increase the feature set.
+  * If there are PRs with new features or adjustments that's fine.
+  * This project is a commitment to a simple tool/package, but it is done in spare time and so may not the most exciting thing to attend to.
+
 Project history
 ---
 
