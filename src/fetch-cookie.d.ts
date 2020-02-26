@@ -9,4 +9,3 @@ declare module "fetch-cookie" {
 
   export default fetchCookie;
 }
-

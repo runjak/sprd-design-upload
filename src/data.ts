@@ -1,4 +1,4 @@
-import compareDest from 'date-fns/compare_desc';
+import compareDest from 'date-fns/compareDesc';
 import uniqBy from 'lodash/uniqBy';
 
 import {
