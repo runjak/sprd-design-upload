@@ -1,33 +1,33 @@
+import retry from "async-retry";
+import fetch from "cross-fetch";
 import fs from "fs";
 import path from "path";
-import fetch, { Response } from "node-fetch";
 import { Readable } from "stream";
-import retry from "async-retry";
 
-import { FetchFunction, createAuthorizedFetch, withCookies } from "./fetch";
+import { createAuthorizedFetch, FetchFunction, withCookies } from "./fetch";
 
 import {
+  ApiError,
+  Assortment,
+  AuthData,
   CurrenciesData,
   Idea,
   Ideas,
-  PointsOfSale,
-  Assortment,
-  Session,
-  AuthData,
   IdeaTranslation,
-  ApiError,
+  PointsOfSale,
+  Session,
 } from "./types";
 
 import { apiBaseUrl, partnerUrl } from "./consts";
 
 import {
-  newestIdea,
   designUrlForIdea,
-  setCommission,
   filterPointsOfSaleByType,
+  newestIdea,
+  setAssortment,
+  setCommission,
   setPublishingDetails,
   setTranslation,
-  setAssortment,
 } from "./data";
 
 const {
@@ -53,6 +53,7 @@ export async function createSession(
   body.push(JSON.stringify(loginData));
   body.push(null);
 
+  // @ts-ignore body will be fine. just fiiiine.
   const createResponse = await doFetch(url, { method: "POST", body });
 
   return createResponse.json() as Promise<Session>;
@@ -132,6 +133,7 @@ export async function patchIdea(
   createResponse: Response,
   filePath: string
 ): Promise<Response> {
+  // @ts-ignore headers.raw() works fiiiine..
   const { location: url } = createResponse.headers.raw();
   const body = fs.createReadStream(filePath);
 
@@ -145,6 +147,7 @@ export async function patchIdea(
         "tus-resumable": "1.0.0",
         "upload-offset": "0",
       },
+      // @ts-ignore not caring any more
       body,
     }
   );

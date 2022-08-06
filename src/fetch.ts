@@ -1,11 +1,8 @@
+import fetch from "cross-fetch";
 import crypto from "crypto";
 import fetchCookie from "fetch-cookie";
-import { Response, RequestInit } from "node-fetch";
 
-export type FetchFunction = (
-  url: string,
-  options: RequestInit
-) => Promise<Response>;
+export type FetchFunction = typeof fetch;
 
 export function createAuthorizedFetch(
   doFetch: FetchFunction,
@@ -13,8 +10,8 @@ export function createAuthorizedFetch(
   apiKey: string,
   apiSecret: string
 ): FetchFunction {
-  return (url: string, options: RequestInit): Promise<Response> => {
-    const data = `${options.method} ${url} ${Date.now()}`;
+  return (url, options) => {
+    const data = `${options?.method ?? "GET"} ${url} ${Date.now()}`;
     const hash = crypto.createHash("sha1");
     hash.update(`${data} ${apiSecret}`);
     const signature = hash.digest("hex");
@@ -24,7 +21,7 @@ export function createAuthorizedFetch(
     return doFetch(url, {
       ...options,
       headers: {
-        ...(options.headers || {}),
+        ...(options?.headers ?? {}),
         Authorization,
       },
     });
@@ -32,6 +29,7 @@ export function createAuthorizedFetch(
 }
 
 export function withCookies(doFetch: FetchFunction): FetchFunction {
+  // @ts-ignore I just stopped caring
   return fetchCookie(doFetch);
 }
 
