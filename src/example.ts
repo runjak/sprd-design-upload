@@ -1,13 +1,13 @@
-import { sessionFetch, publishAndLink } from './index';
+import { publishAndLink, sessionFetch } from "./index";
 
 const {
-  USERNAME: username = '',
-  PASSWORD: password = '',
-  API_KEY: apiKey = '',
-  API_SECRET: apiSecret = '',
+  USERNAME: username = "",
+  PASSWORD: password = "",
+  API_KEY: apiKey = "",
+  API_SECRET: apiSecret = "",
 } = process.env;
 
-const filePath = './example.png';
+const filePath = "./example.png";
 
 (async () => {
   const { doFetch, userId } = await sessionFetch({
@@ -22,13 +22,13 @@ const filePath = './example.png';
     userId,
     commission: 1,
     translation: {
-      name: 'magical-example',
+      name: "magical-example",
       tags: [],
-      locale: 'de_DE',
+      locale: "de_DE",
       autotranslated: false,
-      description: 'magical example',
+      description: "magical example",
     },
   });
 
-  console.log('Use design here:', link);
+  console.log("Use design here:", link);
 })();

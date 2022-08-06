@@ -1,11 +1,9 @@
 declare module "fetch-cookie" {
-  import fetch, { Request, Response, RequestInit } from 'node-fetch';
-  
+  import { RequestInit, Response } from "node-fetch";
+
   type FetchFunction = (url: string, options: RequestInit) => Promise<Response>;
-  
-  function fetchCookie(
-    doFetch: FetchFunction,
-  ): FetchFunction;
+
+  function fetchCookie(doFetch: FetchFunction): FetchFunction;
 
   export default fetchCookie;
 }
